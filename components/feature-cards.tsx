@@ -90,7 +90,7 @@ export function FeatureCards({ selectedVersion }: { selectedVersion: string }) {
   function getVersionedHref(sectionId: string): string {
     switch (sectionId) {
       case "platform-introduction":
-        return `/docs/${selectedVersion}/${toSlug("01_GRA_Core_Platform Introduction")}/${toSlug("introduction")}`
+        return `/docs/${selectedVersion}/${toSlug("01_GRA_Core_Platform Introduction")}/${toSlug("01_introduction")}`
       case "user-guide":
         return `/docs/${selectedVersion}/${toSlug("02_User Guide")}/${toSlug("user-guide")}`
       case "api-reference":

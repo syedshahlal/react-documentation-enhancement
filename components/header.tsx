@@ -267,7 +267,7 @@ export function Header({
 
           {/* Center Tabs */}
           <nav className="flex-1 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 min-w-0 overflow-x-auto whitespace-nowrap">
-            <Link href="#about" className="text-sm font-medium text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-1">About</Link>
+            <Link href="#about" className="text-sm font-medium text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-1">Home</Link>
             <Link href="#user-guide" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 pb-1">User Guide</Link>
             <Link href="#example" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 pb-1">Example</Link>
             <Link href="#create-doc" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 pb-1">Create Doc</Link>

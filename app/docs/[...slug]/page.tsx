@@ -172,7 +172,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
           <div className="max-w-none px-8 py-6">
             <Breadcrumb slug={slug} />
             <div className="mt-6">
-              <DocContent title={doc.title} content={doc.content} lastUpdated={doc.lastUpdated} />
+              <DocContent title={doc.title} content={doc.content} lastUpdated={doc.lastUpdated} version={selectedVersion} />
               <PageNavigation previousPage={previousPage ?? undefined} nextPage={nextPage ?? undefined} />
             </div>
           </div>

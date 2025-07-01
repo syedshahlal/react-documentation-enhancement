@@ -16,6 +16,7 @@ interface DocContentProps {
   /** HTML produced by remark-html */
   content: string;
   lastUpdated: string;
+  version: string;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -26,6 +27,7 @@ export function DocContent({
   title,
   content,
   lastUpdated,
+  version,
 }: DocContentProps) {
   /* ---------------------------------------------------------------------- */
   /*  Copy-to-clipboard for code fences                                     */
@@ -51,6 +53,9 @@ export function DocContent({
     document.addEventListener("pointerdown", handler);
     return () => document.removeEventListener("pointerdown", handler);
   }, []);
+
+  // Remove the first <h1>...</h1> from the markdown content to avoid duplicate titles
+  const contentWithoutFirstH1 = content.replace(/<h1[^>]*>[\s\S]*?<\/h1>/i, "");
 
   /* ---------------------------------------------------------------------- */
   /*  Render                                                                */
@@ -80,14 +85,14 @@ export function DocContent({
           <span>
             Last updated: {new Date(lastUpdated).toLocaleDateString()}
           </span>
-          <Badge variant="secondary">v5.7</Badge>
+          <Badge variant="secondary">{version}</Badge>
         </div>
 
         <Separator className="mt-6" />
       </div>
 
       {/* -------- Markdown body -------- */}
-      <MarkdownBody html={content} copiedId={copiedId} />
+      <MarkdownBody html={contentWithoutFirstH1} copiedId={copiedId} />
 
       {/* -------- Footer -------- */}
       <footer className="not-prose mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
@@ -178,5 +183,49 @@ function FeedbackButton({
         {label}
       </span>
     </label>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Page                                                                      */
+/* -------------------------------------------------------------------------- */
+
+interface DocPageProps {
+  params: {
+    docId: string;
+  };
+}
+
+export default function DocPage({ params }: DocPageProps) {
+  const { docId } = params;
+
+  /* ---------------------------------------------------------------------- */
+  /*  State                                                                 */
+  /* ---------------------------------------------------------------------- */
+  const [doc, setDoc] = useState<DocContentProps | null>(null);
+  const [selectedVersion, setSelectedVersion] = useState<string>("");
+
+  /* ---------------------------------------------------------------------- */
+  /*  Effects                                                               */
+  /* ---------------------------------------------------------------------- */
+  useEffect(() => {
+    // TODO: Replace with real data fetching
+    setDoc({
+      title: "Document Title",
+      content: "<p>Document content goes here.</p>",
+      lastUpdated: new Date().toISOString(),
+      version: "1.0.0",
+    });
+  }, [docId]);
+
+  if (!doc) return null;
+
+  return (
+    <DocContent
+      title={doc.title}
+      content={doc.content}
+      lastUpdated={doc.lastUpdated}
+      version={selectedVersion}
+    />
   );
 }
