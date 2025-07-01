@@ -116,7 +116,11 @@ export async function GET(request: Request) {
     }
 
     const links = await findImportantDocs(docsPath)
-    return NextResponse.json(links)
+    return NextResponse.json(links, {
+      headers: {
+        "Cache-Control": "public, max-age=300, stale-while-revalidate=600"
+      }
+    })
   } catch (error) {
     console.error("Error generating see-also links:", error)
     return NextResponse.json({ error: "Failed to read see-also links" }, { status: 500 })
