@@ -2,16 +2,24 @@ import Link from "next/link"
 import { ChevronRight, Home } from "lucide-react"
 
 interface BreadcrumbProps {
+  navTab: string // e.g., "Documentation", "User Guide", etc.
+  dropdown?: string // e.g., version or section, optional
   slug: string[]
 }
 
-export function Breadcrumb({ slug }: BreadcrumbProps) {
+export function Breadcrumb({ navTab, dropdown, slug }: BreadcrumbProps) {
+  function formatTitle(segment: string) {
+    // Remove leading numbers and separators (e.g., 01_, 02-, 03 )
+    const cleaned = segment.replace(/^\d+[-_\s]*/, "");
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1).replace(/-/g, " ");
+  }
+
   const breadcrumbs = [
-    { title: "Home", href: "/" },
-    { title: "Documentation", href: "/docs" },
+    { title: navTab, href: `/docs${dropdown ? `/${dropdown}` : ""}` },
+    ...(dropdown ? [{ title: dropdown, href: `/docs/${dropdown}` }] : []),
     ...slug.map((segment, index) => ({
-      title: segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "),
-      href: `/docs/${slug.slice(0, index + 1).join("/")}`,
+      title: formatTitle(segment),
+      href: `/docs${dropdown ? `/${dropdown}` : ""}/${slug.slice(0, index + 1).join("/")}`,
     })),
   ]
 
