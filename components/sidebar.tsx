@@ -23,6 +23,7 @@ import {
   FileText,
   Loader2,
 } from "lucide-react"
+import { slugify } from "@/lib/slugify"
 
 // Icon mapping for dynamic icons
 const iconMap = {
@@ -69,22 +70,26 @@ export function Sidebar({ folderTree, version }: { folderTree: FolderTreeNode[];
 
   // Only show navigation for the selected version
   // Convert folderTree to NavItem[] for navigation
-  const convertTreeToNav = (nodes: FolderTreeNode[]): NavItem[] =>
-    nodes.map((node) =>
-      node.type === "folder"
-        ? {
-            title: node.name,
-            icon: "Folder",
-            type: "folder",
-            items: node.children ? convertTreeToNav(node.children) : [],
-          }
-        : {
-            title: node.name.replace(/\.md$/, ""),
-            icon: "FileText",
-            type: "file",
-            href: `/docs/${version}/${node.name.replace(/\.md$/, "")}`,
-          }
-    )
+  const convertTreeToNav = (nodes: FolderTreeNode[], parentPath: string[] = []): NavItem[] =>
+    nodes.map((node) => {
+      if (node.type === "folder") {
+        return {
+          title: node.name,
+          icon: "Folder",
+          type: "folder",
+          items: node.children ? convertTreeToNav(node.children, [...parentPath, slugify(node.name)]) : [],
+        }
+      } else {
+        // Use slugified folder/file names for the path
+        const fullPath = [...parentPath, slugify(node.name.replace(/\.md$/, ""))].join("/")
+        return {
+          title: node.name.replace(/\.md$/, ""),
+          icon: "FileText",
+          type: "file",
+          href: `/docs/${version}/${fullPath}`,
+        }
+      }
+    })
 
   const navigation = convertTreeToNav(folderTree)
 

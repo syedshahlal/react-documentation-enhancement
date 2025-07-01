@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { cn } from "@/lib/utils"
 
 interface TocItem {
@@ -10,34 +10,28 @@ interface TocItem {
 }
 
 interface TableOfContentsProps {
-  content: string
+  content: string // HTML string
 }
 
 export function TableOfContents({ content }: TableOfContentsProps) {
-  const [toc, setToc] = useState<TocItem[]>([])
   const [activeId, setActiveId] = useState<string>("")
 
-  useEffect(() => {
-    // Extract headings from markdown content
-    const headingRegex = /^(#{1,6})\s+(.+)$/gm
+  // Memoize TOC extraction to avoid re-parsing on every render
+  const toc = useMemo(() => {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(content, "text/html")
     const headings: TocItem[] = []
-    let match
-
-    while ((match = headingRegex.exec(content)) !== null) {
-      const level = match[1].length
-      const title = match[2]
-      const id = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")
-
+    doc.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((el) => {
+      const level = parseInt(el.tagName[1])
+      const title = el.textContent || ""
+      const id = el.id || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
       headings.push({ id, title, level })
-    }
-
-    setToc(headings)
+    })
+    return headings
   }, [content])
 
   useEffect(() => {
+    if (toc.length === 0) return
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -48,12 +42,10 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       },
       { rootMargin: "-20% 0% -35% 0%" },
     )
-
     const headingElements = document.querySelectorAll("h1, h2, h3, h4, h5, h6")
     headingElements.forEach((el) => observer.observe(el))
-
     return () => observer.disconnect()
-  }, [])
+  }, [toc])
 
   if (toc.length === 0) return null
 
