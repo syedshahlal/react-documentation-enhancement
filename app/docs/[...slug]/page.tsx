@@ -28,40 +28,121 @@ const navigationOrder = [
 
 // --- Match .md file path from slug
 const findMatchingFilePath = async (slugParts: string[]): Promise<string | null> => {
-  const baseDir = path.join(process.cwd(), "docs")
-  let currentDir = baseDir
+  const baseDir = path.join(process.cwd(), "docs");
+  let currentDir = baseDir;
 
   for (const part of slugParts.slice(0, -1)) {
-    const entries = await fs.readdir(currentDir, { withFileTypes: true })
-    const match = entries.find((e) => e.isDirectory() && slugify(e.name) === part)
-    if (!match) return null
-    currentDir = path.join(currentDir, match.name)
+    const entries = await fs.readdir(currentDir, { withFileTypes: true });
+    // Always match by slugified name, but use the real name for the path
+    const match = entries.find(
+      (e) => e.isDirectory() && slugify(e.name) === part
+    );
+    if (!match) {
+      // Optionally log for debugging:
+      // console.warn(`Directory not found for slug: ${part} in ${currentDir}`);
+      return null;
+    }
+    currentDir = path.join(currentDir, match.name);
   }
 
-  const finalEntries = await fs.readdir(currentDir)
+  const finalEntries = await fs.readdir(currentDir, { withFileTypes: true });
   const fileMatch = finalEntries.find(
-    (f) => f.toLowerCase().endsWith(".md") && slugify(f.replace(/\.md$/, "")) === slugify(slugParts.at(-1)!)
-  )
+    (f) =>
+      f.isFile() &&
+      f.name.toLowerCase().endsWith(".md") &&
+      slugify(f.name.replace(/\.md$/, "")) === slugify(slugParts.at(-1)!)
+  );
 
-  return fileMatch ? path.join(currentDir, fileMatch) : null
+  return fileMatch ? path.join(currentDir, fileMatch.name) : null;
 }
 
-// --- Load .md content and parse frontmatter
-const getDocContent = async (slug: string[]) => {
+// --- Helper: resolve feature-card reference to URL
+function resolveFeatureCardLink(sectionId: string, selectedVersion: string, folderTree: any[]): { href: string, title: string } | null {
+  const sectionSlugMap: Record<string, string> = {
+    "platform-introduction": slugify("01_GRA_Core_Platform Introduction"),
+    "user-guide": slugify("02_User Guide"),
+    "api-reference": slugify("03_API Reference"),
+    "examples-tutorials": slugify("04_Examples & Tutorials"),
+    "development-guide": slugify("05_Development Guide"),
+    "gcp-feature-in-depth": slugify("06_GCP Feature InDepth"),
+  }
+  const sectionTitleMap: Record<string, string> = {
+    "platform-introduction": "GRA Core Platform Introduction",
+    "user-guide": "User Guide",
+    "api-reference": "API Reference",
+    "examples-tutorials": "Examples & Tutorials",
+    "development-guide": "Development Guide",
+    "gcp-feature-in-depth": "GCP Feature In-Depth",
+  }
+  function findFirstFileSlug(node: any, parentSlugs: string[] = []): string[] | null {
+    if (!node) return null
+    if (node.type === "file") {
+      return [...parentSlugs, slugify(node.name.replace(/\.md$/, ""))]
+    }
+    if (node.type === "folder" && node.children) {
+      for (const child of node.children) {
+        const found = findFirstFileSlug(child, [...parentSlugs, slugify(node.name)])
+        if (found) return found
+      }
+    }
+    return null
+  }
+  function findFolderNodeBySlug(nodes: any[], slug: string) {
+    if (!Array.isArray(nodes)) return null;
+    for (const node of nodes) {
+      if (node.type === "folder" && slugify(node.name) === slug) return node
+    }
+    return null
+  }
+  const folderSlug = sectionSlugMap[sectionId]
+  if (!folderSlug) return null
+  const folderNode = findFolderNodeBySlug(folderTree, folderSlug)
+  if (!folderNode) return null
+  const fileSlugArr = findFirstFileSlug(folderNode, [folderSlug])
+  if (!fileSlugArr) return null
+  return { href: `/docs/${selectedVersion}/${fileSlugArr.join("/")}`, title: sectionTitleMap[sectionId] || sectionId }
+}
+
+// --- Load .md content and parse frontmatter (with next/prev/uiLink logic)
+const getDocContent = async (slug: string[], folderTree: any[], selectedVersion: string) => {
   const filePath = await findMatchingFilePath(slug)
   if (!filePath) return null
-
   try {
     const raw = await fs.readFile(filePath, "utf-8")
     const stats = await fs.stat(filePath)
     const { content, data } = matter(raw)
-
     const title = data.title || content.match(/^#\s+(.+)$/m)?.[1]?.trim() || slug[slug.length - 1]
     const processed = await remark().use(html).process(content)
+    // Resolve next/prev links
+    let nextPage: { href: string, title: string } | null = null
+    let previousPage: { href: string, title: string } | null = null
+    let uiLink: { href: string, title: string } | null = null
+    if (data.next) {
+      if (typeof data.next === "string" && data.next.startsWith("feature-card:")) {
+        nextPage = resolveFeatureCardLink(data.next.replace("feature-card:", ""), selectedVersion, folderTree)
+      } else if (typeof data.next === "string") {
+        nextPage = { href: data.next, title: "Next" }
+      }
+    }
+    if (data.prev) {
+      if (typeof data.prev === "string" && data.prev.startsWith("feature-card:")) {
+        previousPage = resolveFeatureCardLink(data.prev.replace("feature-card:", ""), selectedVersion, folderTree)
+      } else if (typeof data.prev === "string") {
+        previousPage = { href: data.prev, title: "Previous" }
+      }
+    }
+    if (data.uiLink && typeof data.uiLink === "string" && data.uiLink.startsWith("feature-card:")) {
+      uiLink = resolveFeatureCardLink(data.uiLink.replace("feature-card:", ""), selectedVersion, folderTree)
+    } else if (data.uiLink && typeof data.uiLink === "string") {
+      uiLink = { href: data.uiLink, title: "UI Link" }
+    }
     return {
       title,
-      content: processed.toString(), // HTML string
+      content: processed.toString(),
       lastUpdated: stats.mtime.toISOString().split("T")[0],
+      nextPage,
+      previousPage,
+      uiLink, // available for use, not rendered in markdown
     }
   } catch {
     return null
@@ -118,19 +199,18 @@ async function getPageNavigationChronological(slug: string[]) {
 // --- Main Page
 export default async function DocPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params
-  const doc = await getDocContent(slug)
-  if (!doc) notFound()
-
   // Get all available versions (folders in /docs)
   const docsDir = path.join(process.cwd(), "docs")
   const versionDirs = (await fs.readdir(docsDir, { withFileTypes: true }))
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
-
   const selectedVersion = slug[0]
+  const versionRoot = path.join(docsDir, selectedVersion)
+  const folderTree = await getFolderTree(versionRoot)
+  const doc = await getDocContent(slug, folderTree, selectedVersion)
+  if (!doc) notFound()
 
   // Get folder tree for the selected version
-  const versionRoot = path.join(docsDir, selectedVersion)
   async function getFolderTree(dir: string): Promise<any> {
     const entries = await fs.readdir(dir, { withFileTypes: true })
     return Promise.all(
@@ -152,9 +232,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
       })
     ).then((children) => children.filter(Boolean))
   }
-  const folderTree = await getFolderTree(versionRoot)
-  const { previousPage, nextPage } = await getPageNavigationChronological(slug)
-
+  const { previousPage: autoPrev, nextPage: autoNext } = await getPageNavigationChronological(slug)
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900">
       <ClientHeaderWrapper
@@ -173,7 +251,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
             <Breadcrumb slug={slug} />
             <div className="mt-6">
               <DocContent title={doc.title} content={doc.content} lastUpdated={doc.lastUpdated} />
-              <PageNavigation previousPage={previousPage ?? undefined} nextPage={nextPage ?? undefined} />
+              <PageNavigation previousPage={doc.previousPage ?? autoPrev ?? undefined} nextPage={doc.nextPage ?? autoNext ?? undefined} />
             </div>
           </div>
         </main>
@@ -200,11 +278,11 @@ export async function generateStaticParams() {
       const fullPath = path.join(dir, entry.name)
       if (entry.isDirectory()) {
         const nested = await walk(fullPath)
-        paths.push(...nested)
+        paths.push(...(nested as string[][]))
       } else if (entry.isFile() && entry.name.endsWith(".md")) {
         const relativePath = path.relative(docsDir, fullPath).replace(/\.md$/, "")
         const slugParts = relativePath.split(path.sep).map(slugify)
-        paths.push(slugParts)
+        paths.push(slugParts as string[])
       }
     }
 

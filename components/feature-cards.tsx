@@ -1,12 +1,13 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { ArrowLeft, ArrowRight, BookOpen, Code, ExternalLink, GitBranch, Layers, Search, Server, Users } from "lucide-react"
+import { useEffect, useState } from "react"
+import { ArrowLeft, ArrowRight, BookOpen, Code, ExternalLink, GitBranch, Layers, Server, Users } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { buildUiLinkMap } from "@/lib/getDocContent"
 
 type Feature = {
   icon: React.ElementType
@@ -72,42 +73,37 @@ const features: Feature[] = [
     href: "/development-guide",
   },
   {
-    icon: Search,
+    icon: Server,
     title: "GCP Feature In-Depth",
     description: "Deep dive into GRA Core Platform architecture and infrastructure.",
     color: "text-indigo-600 dark:text-indigo-400",
     gradient: "from-indigo-600/60 to-indigo-400/60",
     details: ["Architecture", "Infrastructure", "Scaling"],
-    sectionId: "gcp-feature-in-depth",
-    href: "/gcp-feature-in-depth",
+    sectionId: "platform-architecture",
+    href: "/platform-architecture",
   },
 ]
 
 export function FeatureCards({ selectedVersion }: { selectedVersion: string }) {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+  const [uiLinkMap, setUiLinkMap] = useState<Record<string, string>>({})
 
-  // Helper to build the correct href for each card based on version
-  function getVersionedHref(sectionId: string): string {
-    switch (sectionId) {
-      case "platform-introduction":
-        return `/docs/${selectedVersion}/${toSlug("01_GRA_Core_Platform Introduction")}/${toSlug("introduction")}`
-      case "user-guide":
-        return `/docs/${selectedVersion}/${toSlug("02_User Guide")}/${toSlug("user-guide")}`
-      case "api-reference":
-        return `/docs/${selectedVersion}/${toSlug("03_API Reference")}/${toSlug("api-reference")}`
-      case "examples-tutorials":
-        return `/docs/${selectedVersion}/${toSlug("04_Examples & Tutorials")}/${toSlug("basic-setup")}`
-      case "development-guide":
-        return `/docs/${selectedVersion}/${toSlug("05_Development Guide")}/${toSlug("advanced-monitoring")}`
-      case "platform-architecture":
-        return `/docs/${selectedVersion}/${toSlug("06_GCP Feature InDepth")}/`
-      default:
-        return "#"
+  useEffect(() => {
+    // Dynamically build the uiLink map on mount (client-side fetch)
+    async function fetchUiLinks() {
+      const res = await fetch("/api/ui-links")
+      const map = await res.json()
+      setUiLinkMap(map)
     }
-  }
+    fetchUiLinks()
+  }, [])
 
-  function toSlug(str: string) {
-    return str.replace(/_/g, "-").replace(/\s+/g, "-").toLowerCase();
+  function getFeatureCardHref(sectionId: string): string {
+    // Try to find a doc that links to this feature card
+    const key = sectionId.trim().toLowerCase()
+    if (uiLinkMap[key]) return uiLinkMap[key]
+    // fallback to old logic if not found
+    return "#"
   }
 
   return (
@@ -116,7 +112,7 @@ export function FeatureCards({ selectedVersion }: { selectedVersion: string }) {
         {/* Feature Cards Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {features.map(({ icon: Icon, title, description, color, gradient, details, sectionId }, index) => {
-            const href = getVersionedHref(sectionId)
+            const href = getFeatureCardHref(sectionId)
             return (
               <Link
                 href={href}

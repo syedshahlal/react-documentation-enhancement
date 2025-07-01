@@ -1,3 +1,9 @@
+---
+uiLink: feature-card:platform-introduction
+next: /docs/gcp-5.6/02-user-guide/user-guide
+prev: /docs/gcp-5.6/01-gra-core-platform-introduction/overview
+---
+
 # Introduction to GRA Core Platform
 
 Welcome to the GRA Core Platform documentation. This comprehensive guide will help you understand and implement our enterprise-grade platform.
@@ -34,3 +40,10 @@ Auto-scaling capabilities that grow with your business needs.
 ## Next Steps
 
 Ready to dive deeper? Check out our [User Guide](/docs/user-guide) or explore our [API Reference](/docs/api-reference).
+
+
+---
+uiLink: feature-card:development-guide
+next: /docs/gcp-5.6/02-user-guide/user-guide
+prev: /docs/gcp-5.6/01-gra-core-platform-introduction/overview
+---
