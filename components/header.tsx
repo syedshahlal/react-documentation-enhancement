@@ -177,10 +177,10 @@ export function Header({
   }
 
   return (
-    <header className="border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-0 left-0 right-0 z-50">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+    <header className="border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-0 left-0 right-0 z-50 w-full">
+      <div className="w-full px-0 py-4">
+        <div className="flex items-center justify-between w-full pr-4 sm:pr-6 md:pr-8 lg:pr-10 xl:pr-16 2xl:pr-24 pl-2">
+          <div className="flex items-center space-x-2">
             <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
               <Logo />
               <div>
@@ -266,24 +266,25 @@ export function Header({
           </div>
 
           {/* Center Tabs */}
-          <div className="flex items-center space-x-8">
+          <nav className="flex-1 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 min-w-0 overflow-x-auto whitespace-nowrap">
             <Link href="#about" className="text-sm font-medium text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-1">About</Link>
             <Link href="#user-guide" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 pb-1">User Guide</Link>
             <Link href="#example" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 pb-1">Example</Link>
             <Link href="#create-doc" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 pb-1">Create Doc</Link>
             <Link href="#gcp-bow" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 pb-1">GCP BOW</Link>
+          </nav>
+
+          {/* Theme Toggle Pill Button and Action Buttons */}
+          <div className="flex items-center gap-2">
+            <ThemeToggleButton />
+            <Button variant="outline" size="sm" className="min-w-[220px] flex items-center justify-start px-4">
+              <Search className="w-4 h-4 mr-2" />
+              <span className="truncate text-left">Search</span>
+            </Button>
+            <Button variant="outline" size="sm" className="md:hidden bg-transparent">
+              <Menu className="w-4 h-4" />
+            </Button>
           </div>
-
-          {/* Theme Toggle Pill Button */}
-          <ThemeToggleButton />
-
-          <Button variant="outline" size="sm">
-            <Search className="w-4 h-4 mr-2" />
-            Search
-          </Button>
-          <Button variant="outline" size="sm" className="md:hidden bg-transparent">
-            <Menu className="w-4 h-4" />
-          </Button>
         </div>
       </div>
     </header>

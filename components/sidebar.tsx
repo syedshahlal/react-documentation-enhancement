@@ -247,20 +247,20 @@ export function Sidebar({ folderTree, version }: { folderTree: FolderTreeNode[];
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+      <div className="p-4 pt-8 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center gap-2 w-full">
+          <Search className="w-4 h-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search docs..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-md bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400"
+            className="flex-1 pl-2 pr-2 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-md bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400"
           />
           {searchQuery && (
             <button
               onClick={clearSearch}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             >
               <X className="w-4 h-4" />
             </button>
@@ -381,13 +381,7 @@ export function Sidebar({ folderTree, version }: { folderTree: FolderTreeNode[];
       {isMobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div className="fixed inset-0 bg-slate-900/50 dark:bg-slate-900/80" onClick={() => setIsMobileOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
-              <h2 className="font-semibold text-slate-900 dark:text-slate-100">Documentation</h2>
-              <Button variant="ghost" size="sm" onClick={() => setIsMobileOpen(false)}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+          <div className="fixed inset-y-0 left-0 w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 pt-24">
             <SidebarContent />
           </div>
         </div>

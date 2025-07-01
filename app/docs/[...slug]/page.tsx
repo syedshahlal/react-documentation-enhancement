@@ -164,7 +164,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
       />
       <div className="flex">
         {/* Sidebar: pass folderTree as prop */}
-        <div className="fixed left-0 top-0 bottom-0 w-80 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-y-auto pt-20">
+        <div className="fixed left-0 top-30 bottom-0 w-80 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-y-auto pt-20">
           <Sidebar folderTree={folderTree} version={selectedVersion} />
         </div>
         {/* Main Content */}
