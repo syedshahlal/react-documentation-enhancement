@@ -8,6 +8,7 @@ This comprehensive user guide will walk you through all aspects of using GRA Cor
 2. [Basic Operations](#basic-operations)
 3. [Advanced Features](#advanced-features)
 4. [Troubleshooting](#troubleshooting)
+5. [Test Update](#versionCOmpare)
 
 ## Getting Started
 

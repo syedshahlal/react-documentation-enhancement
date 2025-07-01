@@ -6,12 +6,14 @@ import { Copy, Check, Edit, Share, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import DocVersionDiff from "@/components/DocVersionDiff";
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
 /* -------------------------------------------------------------------------- */
 
 interface DocContentProps {
+  docId: string;
   title: string;
   /** HTML produced by remark-html */
   content: string;
@@ -24,6 +26,7 @@ interface DocContentProps {
 /* -------------------------------------------------------------------------- */
 
 export function DocContent({
+  docId,
   title,
   content,
   lastUpdated,
@@ -58,6 +61,17 @@ export function DocContent({
   const contentWithoutFirstH1 = content.replace(/<h1[^>]*>[\s\S]*?<\/h1>/i, "");
 
   /* ---------------------------------------------------------------------- */
+  /*  State                                                                 */
+  /* ---------------------------------------------------------------------- */
+  const [versions, setVersions] = useState<string[]>([])
+  useEffect(() => {
+    fetch("/api/versions")
+      .then(res => res.json())
+      .then(setVersions)
+      .catch(() => setVersions([]))
+  }, [])
+
+  /* ---------------------------------------------------------------------- */
   /*  Render                                                                */
   /* ---------------------------------------------------------------------- */
   return (
@@ -87,6 +101,13 @@ export function DocContent({
           </span>
           <Badge variant="secondary">{version}</Badge>
         </div>
+
+        <DocVersionDiff
+          docId={docId}
+          currentVersion={version}
+          versions={versions}
+          currentContent={content}
+        />
 
         <Separator className="mt-6" />
       </div>
@@ -211,6 +232,7 @@ export default function DocPage({ params }: DocPageProps) {
   useEffect(() => {
     // TODO: Replace with real data fetching
     setDoc({
+      docId,
       title: "Document Title",
       content: "<p>Document content goes here.</p>",
       lastUpdated: new Date().toISOString(),
@@ -222,6 +244,7 @@ export default function DocPage({ params }: DocPageProps) {
 
   return (
     <DocContent
+      docId={doc.docId}
       title={doc.title}
       content={doc.content}
       lastUpdated={doc.lastUpdated}

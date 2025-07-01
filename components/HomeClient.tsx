@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import dynamic from "next/dynamic"
+import VersionCompare from "@/components/VersionCompare"
 
 interface HomepageSection {
   title: string
@@ -107,6 +108,7 @@ export default function HomeClient({ initialSections, initialSeeAlso, versions, 
             ))}
           </div>
         </div>
+        <VersionCompare versions={versions} />
         <LazyExample />
         {loading && <div className="mt-8 text-center text-blue-500">Loading...</div>}
         {error && <div className="mt-8 text-center text-red-500">{error}</div>}
